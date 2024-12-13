@@ -19,7 +19,7 @@ class LocationRepositoryImpl implements LocationRepository {
       final status = await Permission.location.status;
       return status.isGranted;
     } catch (e) {
-      return false;
+      throw Exception('Failed to check location permission: $e');
     }
   }
 
@@ -49,10 +49,11 @@ class LocationRepositoryImpl implements LocationRepository {
         return false;
       }
 
-      return permission == LocationPermission.always || 
-             permission == LocationPermission.whileInUse;
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
     } catch (e) {
-      return false;
+      throw Exception('Failed to request location permission: $e');
+      // return false;
     }
   }
 

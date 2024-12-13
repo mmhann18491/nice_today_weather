@@ -1,7 +1,7 @@
 name: nice_today_weather
 description: "A weather application with robust features and clean architecture"
 publish_to: 'none'
-version: 1.0.1
+version: 1.0.6
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -41,7 +41,7 @@ dependencies:
   shimmer: ^3.0.0
   
   # Permissions
-  permission_handler: ^11.3.0
+  permission_handler: ^11.3.1
   
   # Add this line
   package_info_plus: ^8.1.2
