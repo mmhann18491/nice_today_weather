@@ -10,6 +10,12 @@ A new Flutter project.
 flutter build web
 ```
 
+## Build release
+
+```bash
+flutter build web --release
+```
+
 ## Deploy
 
 ```bash
