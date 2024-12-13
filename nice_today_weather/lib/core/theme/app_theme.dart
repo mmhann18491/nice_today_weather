@@ -7,6 +7,11 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: Colors.teal.withOpacity(0.5),
+        selectionColor: Colors.teal.withOpacity(0.3),
+        selectionHandleColor: Colors.teal.withOpacity(0.5),
+      ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         primary: primaryColor,
@@ -14,7 +19,6 @@ class AppTheme {
         secondary: secondaryColor,
         onSecondary: Colors.white,
         surface: Colors.white,
-        background: Colors.grey[50]!,
         brightness: Brightness.light,
       ),
       appBarTheme: const AppBarTheme(
@@ -54,6 +58,11 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: Colors.teal.withOpacity(0.5),
+        selectionColor: Colors.teal.withOpacity(0.3),
+        selectionHandleColor: Colors.teal.withOpacity(0.5),
+      ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         primary: primaryColor,
@@ -61,7 +70,6 @@ class AppTheme {
         secondary: secondaryColor,
         onSecondary: Colors.white,
         surface: const Color(0xFF424242),
-        background: const Color(0xFF303030),
         brightness: Brightness.dark,
       ),
       appBarTheme: const AppBarTheme(
@@ -94,4 +102,4 @@ class AppTheme {
       ),
     );
   }
-} 
+}

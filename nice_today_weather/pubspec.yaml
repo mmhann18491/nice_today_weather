@@ -1,7 +1,7 @@
 name: nice_today_weather
 description: "A weather application with robust features and clean architecture"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -39,6 +39,12 @@ dependencies:
   flutter_svg: ^2.0.10
   cached_network_image: ^3.3.1
   shimmer: ^3.0.0
+  
+  # Permissions
+  permission_handler: ^11.3.0
+  
+  # Add this line
+  package_info_plus: ^8.1.2
 
 dev_dependencies:
   flutter_test:

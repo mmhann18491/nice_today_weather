@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:nice_today_weather/core/error/weather_api_exceptions.dart';
 
 class WeatherApiService {
   static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
@@ -13,6 +14,38 @@ class WeatherApiService {
     receiveTimeout: const Duration(seconds: 5),
   ));
 
+  String _handleError(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'Connection timed out. Please check your internet connection.';
+        case DioExceptionType.connectionError:
+          return 'No internet connection. Please check your network settings.';
+        case DioExceptionType.badResponse:
+          switch (error.response?.statusCode) {
+            case 401:
+              return 'API key is invalid or expired.';
+            case 404:
+              return 'Weather information not found for this location.';
+            case 429:
+              return 'Too many requests. Please try again later.';
+            case 500:
+            case 502:
+            case 503:
+            case 504:
+              return 'Weather service is temporarily unavailable. Please try again later.';
+            default:
+              return 'Failed to fetch weather data. Please try again.';
+          }
+        default:
+          return 'An unexpected error occurred. Please try again.';
+      }
+    }
+    return 'Failed to fetch weather data: $error';
+  }
+
   Future<Map<String, dynamic>> getCurrentWeather(double lat, double lon) async {
     try {
       final response = await _dio.get(
@@ -24,7 +57,7 @@ class WeatherApiService {
       );
       return response.data;
     } catch (e) {
-      throw Exception('Failed to fetch weather data: $e');
+      throw WeatherApiException(_handleError(e));
     }
   }
 
@@ -38,7 +71,7 @@ class WeatherApiService {
       );
       return response.data;
     } catch (e) {
-      throw Exception('Failed to fetch weather data: $e');
+      throw WeatherApiException(_handleError(e));
     }
   }
 
@@ -53,7 +86,7 @@ class WeatherApiService {
       );
       return response.data;
     } catch (e) {
-      throw Exception('Failed to fetch forecast data: $e');
+      throw WeatherApiException(_handleError(e));
     }
   }
 } 

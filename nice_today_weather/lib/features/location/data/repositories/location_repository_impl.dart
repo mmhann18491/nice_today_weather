@@ -3,20 +3,21 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nice_today_weather/features/location/domain/entities/location.dart';
 import 'package:nice_today_weather/features/location/domain/repositories/location_repository.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<bool> checkPermission() async {
     try {
-      // Test if location services are enabled.
+      // Check location service status
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return false;
       }
 
-      final permission = await Geolocator.checkPermission();
-      return permission == LocationPermission.always ||
-          permission == LocationPermission.whileInUse;
+      // Check location permission status
+      final status = await Permission.location.status;
+      return status.isGranted;
     } catch (e) {
       return false;
     }
@@ -25,23 +26,31 @@ class LocationRepositoryImpl implements LocationRepository {
   @override
   Future<bool> requestPermission() async {
     try {
-      // Test if location services are enabled.
+      // Check if location services are enabled
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        // Try to enable location services first
+        final locationOpened = await Geolocator.openLocationSettings();
+        if (!locationOpened) {
+          return false;
+        }
         return false;
       }
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return false;
+        }
       }
 
       if (permission == LocationPermission.deniedForever) {
         return false;
       }
 
-      return permission == LocationPermission.always ||
-          permission == LocationPermission.whileInUse;
+      return permission == LocationPermission.always || 
+             permission == LocationPermission.whileInUse;
     } catch (e) {
       return false;
     }

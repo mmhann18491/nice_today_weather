@@ -7,16 +7,30 @@ class LocationSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: TextField(
-          decoration: const InputDecoration(
+          style: TextStyle(color: colorScheme.onSurface),
+          selectionControls: MaterialTextSelectionControls(),
+          cursorHeight: 20,
+          decoration: InputDecoration(
             hintText: 'Search location...',
+            hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
             border: InputBorder.none,
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.search, color: colorScheme.onSurface.withOpacity(0.7)),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: colorScheme.primary),
+            ),
           ),
           onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              context.read<WeatherBloc>().add(GetWeatherByCity(value));
+            }
+          },
+          onChanged: (value) {
             if (value.isNotEmpty) {
               context.read<WeatherBloc>().add(GetWeatherByCity(value));
             }

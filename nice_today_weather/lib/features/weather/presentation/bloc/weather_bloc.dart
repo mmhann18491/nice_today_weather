@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:nice_today_weather/core/error/weather_api_exceptions.dart';
 import 'package:nice_today_weather/features/location/domain/repositories/location_repository.dart';
 import 'package:nice_today_weather/features/weather/domain/entities/weather.dart';
 import 'package:nice_today_weather/features/weather/domain/repositories/weather_repository.dart';
@@ -43,7 +44,9 @@ abstract class WeatherState extends Equatable {
 }
 
 class WeatherInitial extends WeatherState {}
+
 class WeatherLoading extends WeatherState {}
+
 class WeatherLoaded extends WeatherState {
   final Weather weather;
   final List<Weather> forecast;
@@ -53,6 +56,7 @@ class WeatherLoaded extends WeatherState {
   @override
   List<Object?> get props => [weather, forecast];
 }
+
 class WeatherError extends WeatherState {
   final String message;
 
@@ -112,8 +116,11 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
       print('Forecast data received: $forecast');
       emit(WeatherLoaded(weather: weather, forecast: forecast));
     } catch (e) {
-      print('Error fetching weather: $e');
-      emit(WeatherError(e.toString()));
+      if (e is WeatherApiException) {
+        emit(WeatherError(e.message));
+      } else {
+        emit(WeatherError(e.toString()));
+      }
     }
   }
-} 
+}

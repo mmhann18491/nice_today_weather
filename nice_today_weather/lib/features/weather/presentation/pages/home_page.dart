@@ -6,6 +6,8 @@ import 'package:nice_today_weather/features/weather/presentation/bloc/weather_bl
 import 'package:nice_today_weather/features/weather/presentation/widgets/current_weather_card.dart';
 import 'package:nice_today_weather/features/weather/presentation/widgets/forecast_list.dart';
 import 'package:nice_today_weather/features/weather/presentation/widgets/location_search_bar.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,10 +17,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String _version = '';
+
   @override
   void initState() {
     super.initState();
-    context.read<LocationBloc>().add(GetCurrentLocation());
+
+    _checkAndRequestLocationPermission();
+    _loadAppVersion();
+  }
+
+  Future<void> _checkAndRequestLocationPermission() async {
+    final locationBloc = context.read<LocationBloc>();
+
+    // First request permission
+    locationBloc.add(RequestLocationPermission());
+  }
+
+  Future<void> _openAppSettings() async {
+    final opened = await openAppSettings();
+    if (opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enable location permission in settings'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _version = packageInfo.version;
+      });
+    }
   }
 
   @override
@@ -43,7 +76,10 @@ class _HomePageState extends State<HomePage> {
             Text(
               'Weather',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.65),
                     letterSpacing: 1.2,
                     height: 1.0,
                     fontWeight: FontWeight.w500,
@@ -68,24 +104,32 @@ class _HomePageState extends State<HomePage> {
       body: BlocListener<LocationBloc, LocationState>(
         listener: (context, state) {
           if (state is LocationLoaded) {
-            // When location is loaded, fetch weather for that location
-            context.read<WeatherBloc>().add(
-                  GetWeatherByLocation(
-                    latitude: state.location.latitude,
-                    longitude: state.location.longitude,
-                  ),
-                );
+            if (!context.mounted) return;
+            try {
+              context.read<WeatherBloc>().add(
+                    GetWeatherByLocation(
+                      latitude: state.location.latitude,
+                      longitude: state.location.longitude,
+                    ),
+                  );
+            } catch (e) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Error updating weather data'),
+                ),
+              );
+            }
           } else if (state is LocationPermissionDenied) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Location permission is required'),
-                action: SnackBarAction(
-                  label: 'Settings',
-                  onPressed: openAppSettings,
-                ),
+                content: Text(
+                    'Please enable location permission to get weather for your current location.'),
               ),
             );
           } else if (state is LocationError) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
@@ -98,6 +142,50 @@ class _HomePageState extends State<HomePage> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              BlocBuilder<LocationBloc, LocationState>(
+                builder: (context, state) {
+                  if (state is LocationPermissionDenied) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_off,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Location access is required for accurate weather updates',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onErrorContainer,
+                                    ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => _openAppSettings(),
+                              child: const Text('Enable'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+              ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -125,6 +213,21 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     ],
+                  ),
+                ),
+              ),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      'Version $_version',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                    ),
                   ),
                 ),
               ),
@@ -193,10 +296,4 @@ class _ErrorWidget extends StatelessWidget {
       ),
     );
   }
-}
-
-// Helper function to open app settings
-void openAppSettings() {
-  // This will be implemented using a platform-specific package
-  // For now, it's just a placeholder
 }

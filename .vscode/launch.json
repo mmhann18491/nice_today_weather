@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         
+        
         {
             "name": "nice_today_weather",
             "cwd": "nice_today_weather",
@@ -17,11 +18,11 @@
             "cwd": "nice_today_weather",
             "request": "launch",
             "type": "dart",
+            "deviceId": "chrome",
             "args": [
-                "-d",
-                "chrome",
-                "--web-port",
-                "5000"
+                "--web-port=5000",
+                "--web-hostname=localhost",
+                "--web-enable-expression-evaluation",
             ]
         },
         {
