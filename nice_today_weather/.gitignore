@@ -66,3 +66,6 @@ firebase.json
 
 #firebase 
 .firebaserc
+
+#firebase options
+lib/firebase_options.dart
